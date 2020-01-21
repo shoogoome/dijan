@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <title>Title</title>
+    <style type="text/css">
+        body {
+            font-size: 20px;
+        }
+        a {
+            color: #364657;
+            text-decoration:none;
+        }
+        a:hover {
+            text-decoration:none;
+            color: #007bff;
+        }
+    </style>
+
+    {% block main_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="z-index: 99;height: 70px">
+    <a class="navbar-brand" href="/" style="font-size: 35px; margin-left: 10px;">Dijan</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item {% if nav == 'index' %}active{% endif %}" style="margin-left: 40px">
+                <a class="nav-link" href="/">首页</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/" style="margin-left: 40px">帮助</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/" style="margin-left: 40px">官网</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="content">
+    {% block main_content %}{% endblock %}
+</div>
+
+</body>
+    {% block main_content_js %}{% endblock %}
+</html>
+

@@ -1,0 +1,288 @@
+{% extends "formation/header.html" %}
+{% block main_css %}
+<style type="text/css">
+    .content {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .node-right {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        width: 80%;
+        height: 90vh;
+    }
+
+    .node-header {
+        height: 150px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .node-kv-list {
+        height: 70%;
+        width: 100%;
+    }
+
+    .delete {
+        height: 250px;
+        width: 400px;
+        border: 1px solid #d4d4d4;
+        background-color: white;
+        position: absolute;
+        left: 50%;
+        margin-left: -200px;
+        top: 50%;
+        margin-top: -200px;
+        border-radius: 15px;
+    }
+
+    .delete button {
+        position: relative;
+        left: 40px;
+        top: 60px;
+        font-size: 20px;
+        text-indent: 5px;
+        letter-spacing: 8px;
+    }
+
+    .put {
+        height: 800px;
+        width: 600px;
+        border: 1px solid #d4d4d4;
+        background-color: white;
+        position: absolute;
+        left: 50%;
+        margin-left: -300px;
+        top: 50%;
+        margin-top: -400px;
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .put button {
+        position: relative;
+        left: 40px;
+        top: 20px;
+        font-size: 20px;
+        text-indent: 20px;
+        letter-spacing: 20px;
+    }
+
+</style>
+<script>
+
+    function p(s) {
+        return s < 10 ? '0' + s: s;
+    }
+
+    function formatDate(now) {
+        let year = now.getFullYear();
+        let month = now.getMonth() + 1;
+        let date = now.getDate();
+        let hour = now.getHours();
+        let minute = now.getMinutes();
+        let second = now.getSeconds();
+        return year + "-" + p(month) + "-" + p(date) + " " +p(hour) + ":" + p(minute) + ":" + p(second);
+    }
+
+    function load_ttl_time(ttl, id) {
+        if (ttl === -1.0) {
+            $('#' + id).text(-1)
+        } else {
+            $('#' + id).text(formatDate(new Date(ttl * 1000)))
+        }
+    }
+</script>
+
+{% endblock %}
+{% block main_content %}
+{% include "formation/left_navigation_bar.html" %}
+<div class="node-right">
+    <div class="node-header">
+        <h3>节点缓存数据</h3>
+        <div style="font-size: 25px; margin-top: 50px;">
+            <span style="color: #364657;">存储记录数: {{ count }}</span>
+            <a href="#" style="margin-left: 5%" onclick="show_put('', '')">添加记录</a>
+            <a href="#" style="margin-left: 5%" onclick="empty('{{ hostname }}')">清空数据库</a>
+        </div>
+    </div>
+    <div class="node-kv-list">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">存储键</th>
+                <th scope="col">存储值</th>
+                <th scope="col">过期时间</th>
+                <th scope="col">修改</th>
+                <th scope="col">删除</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in records %}
+            <tr>
+                <th scope="row">{{ i. index }}</th>
+                <td>{{ i.key }}</td>
+                <td>{{ i.value }}</td>
+                <td id="td_{{ i.index }}">
+                    <script>load_ttl_time({{ i.ttl }}, 'td_{{ i.index }}')</script>
+                </td>
+                <td><a href="#" onclick="show_put('{{ i.key }}', '{{ i.value }}')">修改</a></td>
+                <td><a href="#" onclick="show_delete('{{ i.key }}')">删除</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="delete">
+    <h3 style="text-align: center;margin-top: 50px;">确认删除?</h3>
+    <button value="" id="delete-bu" type="button" class="btn btn-danger" onclick="delete_storage_value()">删除</button>
+    <button style="left: 180px" type="button" class="btn btn-secondary" onclick="close_div('fast')">取消</button>
+</div>
+<div class="put">
+    <div>
+        <span style="margin: 0 5px 0 0;">存储键</span>
+        <input style="margin: 20px 0 5px 0;width: 300px" id="put-key"/>
+        <span style="margin: 0 5px 0 35px;">TTL</span>
+        <input style="width: 100px" id="put-ttl"/>
+    </div>
+    <textarea id="put-in" style="height: 600px; margin-top: 40px;" rows="2" cols="20" class="input"></textarea>
+    <div>
+        <button value="" id="put-bu" type="button" class="btn btn-primary" onclick="modify_storage_value()">修改</button>
+        <button style="left: 250px" type="button" class="btn btn-secondary" onclick="close_div('fast')">取消</button>
+    </div>
+</div>
+{% endblock %}
+{% block main_content_js %}
+<script>
+
+    function close_div(sudu) {
+        $('.delete').hide(sudu);
+        $('.put').hide(sudu);
+    }
+
+    function show_put(key, value) {
+        $('.put').show('fast');
+        $('#put-key').val(key);
+        $('#put-in').text(value);
+        if (key == '') {
+            $('#put-bu').text('新增')
+        } else {
+            $('#put-bu').text('修改')
+        }
+    }
+
+    function show_delete(key) {
+        $('.delete').show('fast');
+        $('#delete-bu').val(key);
+    }
+
+    function modify_storage_value() {
+        console.log($('#put-in'))
+        $('.put').hide("fast")
+        $.ajax({
+            type: "POST",
+            url: "/api/storage/set",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            data: JSON.stringify({
+                'key': $('#put-key').val(),
+                'value': $('#put-in').val(),
+                'ttl': parseInt($('#put-ttl').val())
+            }),
+            success: function (data) {
+                var alert_string = "";
+                if (data.status === true) {
+                    alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>操作成功！ </div>";
+                } else {
+                    alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>操作失败！ </div>"
+                }
+
+                $('.node-right').prepend(alert_string);
+                window.setTimeout(function () {
+                    location.reload()
+                }, 1000);
+            },
+            error: function (req, err, obj) {
+                var alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>" + req.responseJSON.message + " </div>"
+                $('.node-right').prepend(alert_string);
+                window.setTimeout(function () {
+                    location.reload()
+                }, 3000);
+            }
+        })
+    }
+
+    function delete_storage_value() {
+        $('.delete').hide("fast")
+        $.ajax({
+            type: "DELETE",
+            url: "/api/storage/delete",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            data: JSON.stringify({
+                'key': $('#delete-bu').val()
+            }),
+            success: function (data) {
+                var alert_string = "";
+                if (data.status === true) {
+                    alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>删除成功！ </div>";
+                } else {
+                    alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>删除失败！ </div>"
+                }
+
+                $('.node-right').prepend(alert_string);
+                window.setTimeout(function () {
+                    location.reload()
+                }, 1000);
+            },
+            error: function () {
+                var alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>删除失败！ </div>"
+                $('.node-right').prepend(alert_string);
+                window.setTimeout(function () {
+                    location.reload()
+                }, 1000);
+            }
+        })
+    }
+
+    function empty(hostname) {
+        $.ajax({
+            type: "GET",
+            url: "/api/empty_search?hostname=" + hostname,
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            success: function (data) {
+                var alert_string = "";
+                if (data.status === true) {
+                    alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>清空成功！ </div>";
+                } else {
+                    alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>清空失败！ </div>"
+                }
+
+                $('.node-right').prepend(alert_string);
+                window.setTimeout(function () {
+                    location.reload()
+                }, 1000);
+            },
+            error: function () {
+                var alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>清空失败！ </div>"
+                $('.node-right').prepend(alert_string);
+                window.setTimeout(function () {
+                    location.reload()
+                }, 1000);
+            }
+        })
+    }
+
+    close_div()
+
+</script>
+
+{% endblock %}

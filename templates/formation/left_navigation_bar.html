@@ -1,0 +1,40 @@
+<style type="text/css">
+    .content-left {
+        width: 20%;
+        height: 90vh;
+        overflow-y: auto;
+        margin-top: 30px;
+        border-right: 1px solid #e3e3e3;
+    }
+    .list-active {
+        list-style:none;
+        padding: 0;
+        margin-left: 40px;
+        height: 65px;
+    }
+    .list-active:hover a{
+        color: #007bff;
+    }
+    .list {
+        list-style:none;
+        padding: 0;
+        height: 65px;
+        font-size: 20px;
+        margin-left: 40px;
+    }
+    .list:hover a{
+        color: #007bff;
+    }
+</style>
+<div class="content-left">
+    <ul style="padding: 10px;">
+        <li class="list-active">
+            <a  href="/overview">总览</a>
+        </li>
+        {% for node in nodes %}
+        <li class="list">
+            <a class="navbar-brand" href="/node/{{ node }}">{{ node }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

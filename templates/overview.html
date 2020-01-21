@@ -1,0 +1,123 @@
+{% extends "formation/header.html" %}
+{% block main_css %}
+<style type="text/css">
+    .content {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .content-right {
+        height: 90vh;
+        width: 80%;
+        display: flex;
+        flex-direction: column;
+    }
+    .total-data {
+        height: 60%;
+        border-bottom: 1px solid #e3e3e3;
+        padding: 30px;
+    }
+    .system-data {
+        font-size: 30px;
+        display: flex;
+        flex-direction: row;
+        margin-left: 40px;
+        color: #364657;
+    }
+    .system-data span {
+        margin-left: 3%;
+    }
+    .home-manage {
+        height: 40%;
+        padding: 30px;
+    }
+</style>
+
+{% endblock %}
+{% block main_content %}
+{% include "formation/left_navigation_bar.html" %}
+<div class="content-right">
+    <div class="total-data">
+        <h3>系统数据</h3><br>
+        <div class="system-data">
+            <span>物理节点数: <a href="#">{{ node_number }}</a></span>
+            <span>总节点数: <a href="#">{{ circular_number }}</a></span>
+            <span>存储总记录: <a href="#">{{ keys }}</a></span>
+        </div>
+    </div>
+    <div class="home-manage">
+        <h3>管理:</h3>
+        <ul style="padding: 10px;">
+            <li class="list">
+                <a href="#" onclick="rebalance()">节点再平衡</a>
+            </li>
+            <li class="list">
+                <a href="#" onclick="empty()">清空数据库</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+{% block main_content_js %}
+<script>
+    function rebalance() {
+        $.ajax({
+            type: "GET",
+            url: "/api/rebalance",
+            contentType: "application/json; charset=utf-8",
+            datatype: "json",
+            success: function(data) {
+                var alert_string = "";
+                if (data.status === true) {
+                    alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>节点再平衡已完成！ </div>";
+                } else {
+                    alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>操作失败！ </div>"
+                }
+
+                $('.content-right').prepend(alert_string);
+                window.setTimeout(function(){
+                    location.reload()
+                },1000);
+            },
+            error: function() {
+                var alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>操作失败！ </div>"
+                $('.content-right').prepend(alert_string);
+                window.setTimeout(function(){
+                    location.reload()
+                },1000);
+            }
+        })
+    }
+
+    function empty() {
+        $.ajax({
+            type: "GET",
+            url: "/api/empty_all",
+            contentType : "application/json; charset=utf-8",
+            datatype: "json",
+            success: function(data) {
+                var alert_string = "";
+                if (data.status === true) {
+                    alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>清空成功！ </div>";
+                } else {
+                    alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>清空失败！ </div>"
+                }
+
+                $('.content-right').prepend(alert_string);
+                window.setTimeout(function(){
+                    location.reload()
+                },1000);
+            },
+            error: function() {
+                var alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>清空失败！ </div>"
+                $('.content-right').prepend(alert_string);
+                window.setTimeout(function(){
+                    location.reload()
+                },1000);
+            }
+        })
+    }
+
+
+</script>
+{% endblock %}

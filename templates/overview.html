@@ -65,6 +65,9 @@
             type: "GET",
             url: "/api/rebalance",
             contentType: "application/json; charset=utf-8",
+            xhrFields: {
+                withCredentials: true
+            },
             datatype: "json",
             success: function(data) {
                 var alert_string = "";
@@ -94,6 +97,9 @@
             type: "GET",
             url: "/api/empty_all",
             contentType : "application/json; charset=utf-8",
+            xhrFields: {
+                withCredentials: true
+            },
             datatype: "json",
             success: function(data) {
                 var alert_string = "";

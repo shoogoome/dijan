@@ -23,7 +23,7 @@ func InitGlobalSystemConfig() {
 
 	if os.Getenv("HEADLESS_SERVICE") == "" {
 		GlobalSystemConfig.Server.Address = os.Getenv("HOSTNAME")
-		GlobalSystemConfig.Server.ClusterAddress = os.Getenv("HOSTNAME")[:len(os.Getenv("HOSTNAME")) - 1] + "0"
+		GlobalSystemConfig.Server.ClusterAddress = os.Getenv("HOSTNAME")
 	} else {
 		GlobalSystemConfig.Server.Address = fmt.Sprintf("%s.%s", os.Getenv("HOSTNAME"), os.Getenv("HEADLESS_SERVICE"))
 		GlobalSystemConfig.Server.ClusterAddress = fmt.Sprintf("%s.%s", os.Getenv("HOSTNAME")[:len(os.Getenv("HOSTNAME")) - 1] + "0", os.Getenv("HEADLESS_SERVICE"))

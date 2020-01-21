@@ -26,6 +26,23 @@
         width: 100%;
     }
 
+    .node-kv-list table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .node-kv-list table td {
+        word-break: keep-all;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .node-kv-list table td:hover {
+        overflow: auto;
+        text-overflow: clip;
+    }
+
     .delete {
         height: 250px;
         width: 400px;
@@ -77,7 +94,7 @@
 <script>
 
     function p(s) {
-        return s < 10 ? '0' + s: s;
+        return s < 10 ? '0' + s : s;
     }
 
     function formatDate(now) {
@@ -87,7 +104,7 @@
         let hour = now.getHours();
         let minute = now.getMinutes();
         let second = now.getSeconds();
-        return year + "-" + p(month) + "-" + p(date) + " " +p(hour) + ":" + p(minute) + ":" + p(second);
+        return year + "-" + p(month) + "-" + p(date) + " " + p(hour) + ":" + p(minute) + ":" + p(second);
     }
 
     function load_ttl_time(ttl, id) {
@@ -107,7 +124,7 @@
         <h3>节点缓存数据</h3>
         <div style="font-size: 25px; margin-top: 50px;">
             <span style="color: #364657;">存储记录数: {{ count }}</span>
-            <a href="#" style="margin-left: 5%" onclick="show_put('', '')">添加记录</a>
+            <a href="#" style="margin-left: 5%" onclick="show_put('', '', '')">添加记录</a>
             <a href="#" style="margin-left: 5%" onclick="empty('{{ hostname }}')">清空数据库</a>
         </div>
     </div>
@@ -115,12 +132,12 @@
         <table class="table">
             <thead>
             <tr>
-                <th scope="col">#</th>
+                <th scope="col" style="width: 50px">#</th>
                 <th scope="col">存储键</th>
                 <th scope="col">存储值</th>
-                <th scope="col">过期时间</th>
-                <th scope="col">修改</th>
-                <th scope="col">删除</th>
+                <th scope="col" style="width: 250px">过期时间</th>
+                <th scope="col" style="width: 80px">修改</th>
+                <th scope="col" style="width: 80px">删除</th>
             </tr>
             </thead>
             <tbody>
@@ -132,7 +149,7 @@
                 <td id="td_{{ i.index }}">
                     <script>load_ttl_time({{ i.ttl }}, 'td_{{ i.index }}')</script>
                 </td>
-                <td><a href="#" onclick="show_put('{{ i.key }}', '{{ i.value }}')">修改</a></td>
+                <td><a href="#" onclick="show_put('{{ i.key }}', '{{ i.value }}', '{{ i.ttl }}')">修改</a></td>
                 <td><a href="#" onclick="show_delete('{{ i.key }}')">删除</a></td>
             </tr>
             {% endfor %}
@@ -167,14 +184,17 @@
         $('.put').hide(sudu);
     }
 
-    function show_put(key, value) {
+    function show_put(key, value, ttl) {
         $('.put').show('fast');
         $('#put-key').val(key);
         $('#put-in').text(value);
+
         if (key == '') {
             $('#put-bu').text('新增')
+            $('#put-ttl').val('-1')
         } else {
             $('#put-bu').text('修改')
+            $('#put-ttl').val(parseInt(ttl))
         }
     }
 
@@ -190,6 +210,9 @@
             type: "POST",
             url: "/api/storage/set",
             contentType: "application/json; charset=utf-8",
+            xhrFields: {
+                withCredentials: true
+            },
             datatype: "json",
             data: JSON.stringify({
                 'key': $('#put-key').val(),
@@ -226,6 +249,9 @@
             url: "/api/storage/delete",
             contentType: "application/json; charset=utf-8",
             datatype: "json",
+            xhrFields: {
+                withCredentials: true
+            },
             data: JSON.stringify({
                 'key': $('#delete-bu').val()
             }),
@@ -257,6 +283,9 @@
             type: "GET",
             url: "/api/empty_search?hostname=" + hostname,
             contentType: "application/json; charset=utf-8",
+            xhrFields: {
+                withCredentials: true
+            },
             datatype: "json",
             success: function (data) {
                 var alert_string = "";

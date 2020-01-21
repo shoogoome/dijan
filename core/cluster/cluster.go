@@ -28,7 +28,7 @@ func (n *node) Addr() string {
 }
 
 func New(addr, cluster string) (Node, error) {
-	conf := memberlist.DefaultLANConfig()
+	conf := memberlist.DefaultWANConfig()
 	conf.Name = addr
 	conf.BindAddr = addr
 	conf.LogOutput = ioutil.Discard
@@ -44,7 +44,7 @@ func New(addr, cluster string) (Node, error) {
 Conn:
 	_, e = l.Join(clu)
 	if e != nil {
-		fmt.Println("[!] 集群连接失败，5s后尝试重连...")
+		fmt.Println("[!] 集群连接失败，5s后尝试重连...", e)
 		time.Sleep(time.Second * 5)
 		goto Conn
 	}

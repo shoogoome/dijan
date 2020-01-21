@@ -18,4 +18,5 @@ func RegisterApiRouters(app *iris.Application) {
 	apiRouter.Get("/empty", hero.Handler(api.Empty))
 	apiRouter.Get("/empty_search", hero.Handler(api.EmptySearch))
 	apiRouter.Get("/empty_all", hero.Handler(api.EmptyAll))
+	apiRouter.Get("/member", hero.Handler(api.GetMember))
 }

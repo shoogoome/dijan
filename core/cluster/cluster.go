@@ -4,7 +4,7 @@ import (
 	"dijan/utils"
 	"fmt"
 	"github.com/hashicorp/memberlist"
-	"io/ioutil"
+	"os"
 	"stathat.com/c/consistent"
 	"time"
 )
@@ -28,10 +28,10 @@ func (n *node) Addr() string {
 }
 
 func New(addr, cluster string) (Node, error) {
-	conf := memberlist.DefaultWANConfig()
+	conf := memberlist.DefaultLANConfig()
 	conf.Name = addr
 	conf.BindAddr = addr
-	conf.LogOutput = ioutil.Discard
+	conf.LogOutput = os.Stderr
 	l, e := memberlist.Create(conf)
 	Member = l
 	if e != nil {
@@ -40,8 +40,8 @@ func New(addr, cluster string) (Node, error) {
 	if cluster == "" {
 		cluster = addr
 	}
-	clu := []string{cluster}
 Conn:
+	clu := []string{cluster}
 	_, e = l.Join(clu)
 	if e != nil {
 		fmt.Println("[!] 集群连接失败，5s后尝试重连...", e)

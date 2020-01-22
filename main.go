@@ -15,7 +15,7 @@ func main() {
 
 	service.InitHttpService()
 	recoveryUtils.MemoryRecovery()
-	n, e := cluster.New(utils.GlobalSystemConfig.Server.Address, utils.GlobalSystemConfig.Server.ClusterAddress)
+	n, e := cluster.New(utils.GlobalSystemConfig.Server.HostName, utils.GlobalSystemConfig.Server.Address, utils.GlobalSystemConfig.Server.ClusterAddress)
 	if e != nil {
 		panic(e)
 	}

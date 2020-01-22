@@ -4,7 +4,7 @@ import (
 	"dijan/utils"
 	"fmt"
 	"github.com/hashicorp/memberlist"
-	"io/ioutil"
+	"os"
 	"stathat.com/c/consistent"
 	"time"
 )
@@ -27,11 +27,12 @@ func (n *node) Addr() string {
 	return n.addr
 }
 
-func New(addr, cluster string) (Node, error) {
-	conf := memberlist.DefaultWANConfig()
+func New(hostname, addr, cluster string) (Node, error) {
+	fmt.Println("flag", hostname, addr, cluster)
+	conf := memberlist.DefaultLANConfig()
 	conf.Name = addr
 	conf.BindAddr = addr
-	conf.LogOutput = ioutil.Discard
+	conf.LogOutput = os.Stdout
 	l, e := memberlist.Create(conf)
 	Member = l
 	if e != nil {

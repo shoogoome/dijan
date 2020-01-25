@@ -6,11 +6,13 @@ import (
 	"github.com/hashicorp/memberlist"
 	"os"
 	"stathat.com/c/consistent"
+	"sync"
 	"time"
 )
 
 var Member *memberlist.Memberlist
 var NodeObject Node
+var lock sync.RWMutex
 
 type Node interface {
 	ShouldProcess(key string) (string, bool)
@@ -27,12 +29,11 @@ func (n *node) Addr() string {
 	return n.addr
 }
 
-func New(hostname, addr, cluster string) (Node, error) {
-	fmt.Println("flag", hostname, addr, cluster)
+func New(addr, cluster string, ipChan chan string) (Node, error) {
 	conf := memberlist.DefaultLANConfig()
 	conf.Name = addr
-	conf.BindAddr = addr
-	conf.LogOutput = os.Stdout
+	conf.AdvertiseAddr = addr
+	conf.LogOutput = os.Stderr
 	l, e := memberlist.Create(conf)
 	Member = l
 	if e != nil {
@@ -42,24 +43,31 @@ func New(hostname, addr, cluster string) (Node, error) {
 		cluster = addr
 	}
 	clu := []string{cluster}
-Conn:
-	_, e = l.Join(clu)
-	if e != nil {
-		fmt.Println("[!] 集群连接失败，5s后尝试重连...", e)
-		time.Sleep(time.Second * 5)
-		goto Conn
-	}
+	lock.Lock()
+	joinCluster(clu)
+	lock.Unlock()
+
 	circle := consistent.New()
 	circle.NumberOfReplicas = utils.GlobalSystemConfig.Cluster.CircleNumberOfNode
+	// 更新集群信息
 	go func() {
+		t := time.NewTimer(time.Second * 1)
 		for {
-			m := l.Members()
-			nodes := make([]string, len(m))
-			for i, n := range m {
-				nodes[i] = n.Name
+			select {
+			case <-t.C:
+				m := l.Members()
+				nodes := make([]string, len(m))
+				for i, n := range m {
+					nodes[i] = n.Name
+				}
+				circle.Set(nodes)
+				t.Reset(time.Second * 1)
+			case ip := <-ipChan:
+				lock.Lock()
+				joinCluster([]string{ip})
+				lock.Unlock()
+				t.Reset(time.Second * 1)
 			}
-			circle.Set(nodes)
-			time.Sleep(time.Second)
 		}
 	}()
 	NodeObject = &node{circle, addr}
@@ -69,4 +77,13 @@ Conn:
 func (n *node) ShouldProcess(key string) (string, bool) {
 	addr, _ := n.Get(key)
 	return addr, addr == n.addr
+}
+
+func joinCluster(cIp []string) {
+	_, err := Member.Join(cIp)
+	if err != nil {
+		fmt.Println("[!] 集群连接失败，5s后尝试重连...", err)
+		time.Sleep(time.Second * 5)
+		joinCluster(cIp)
+	}
 }

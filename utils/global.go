@@ -3,19 +3,19 @@ package utils
 import (
 	"bytes"
 	"dijan/models"
+	"dijan/utils/node"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 	"time"
 )
 
 var GlobalSystemConfig models.GlobalConfig
 
-func InitGlobalSystemConfig() {
+func InitGlobalSystemConfig() chan string {
 
 	yamlFile, err := ioutil.ReadFile("/etc/dijan/config.yaml")
 	if err != nil {
@@ -25,23 +25,6 @@ func InitGlobalSystemConfig() {
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal configuration: %s", err.Error()))
 	}
-	//fmt.Println("这里")
-	//var out bytes.Buffer
-	//cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("cat /etc/hosts"))
-	//cmd.Stdout = &out
-	//cmd.Stderr = os.Stdout
-	//err = cmd.Run()
-	//fmt.Println("?", out.String(), err)
-	//
-	//out = bytes.Buffer{}
-	//fmt.Println(fmt.Sprintf("\"ping -c 1 %s.%s | grep PING | awk '{print $3}'\"", os.Getenv("HOSTNAME")[:len(os.Getenv("HOSTNAME")) - 1] + "0", os.Getenv("HEADLESS_SERVICE")))
-	//cmd = exec.Command("/bin/bash", "-c", fmt.Sprintf("ping -c 1 %s | grep PING | awk '{print $3}'", os.Getenv("HOSTNAME")))
-	//cmd.Stdout = &out
-	//cmd.Stderr = os.Stdout
-	//err = cmd.Run()
-	//fmt.Println("?", out.String(), err)
-	//fmt.Println("结束")
-
 
 	if os.Getenv("HEADLESS_SERVICE") == "" {
 		GlobalSystemConfig.Server.HostName = os.Getenv("HOSTNAME")
@@ -55,31 +38,32 @@ func InitGlobalSystemConfig() {
 		cmd.Stderr = os.Stdout
 		err := cmd.Run()
 		fmt.Println("?", out.String(), err)
-		GlobalSystemConfig.Server.Address = out.String()
+		GlobalSystemConfig.Server.Address = strings.Replace(out.String(), "\n", "", -1)
 PING:
-		out = bytes.Buffer{}
-		fmt.Println(fmt.Sprintf("%s %s %s", "/bin/sh", "-c", fmt.Sprintf("ping -c 1 %s.%s | grep PING | awk '{print $3}'", os.Getenv("HOSTNAME")[:len(os.Getenv("HOSTNAME")) - 1] + "0", os.Getenv("HEADLESS_SERVICE"))))
-		cmd = exec.Command("/bin/sh", "-c", fmt.Sprintf("ping -c 1 %s.%s | grep PING | awk '{print $3}'", os.Getenv("HOSTNAME")[:len(os.Getenv("HOSTNAME")) - 1] + "0", os.Getenv("HEADLESS_SERVICE")))
-		cmd.Stdout = &out
-		cmd.Stderr = os.Stdout
-		err = cmd.Run()
-		fmt.Println("?", out.String(), err)
-		pingIp := regexp.MustCompile("\\((.*)\\):")
-		r := pingIp.FindSubmatch(out.Bytes())
-		if len(r) != 2 {
-			fmt.Println(len(r))
-			fmt.Println(out.String())
-			for v, i := range r {
-				fmt.Println("!!", v, string(i))
-			}
+		clusterIp, err := nodeUtils.GetClusterIp()
+		if err != nil {
 			fmt.Println("[!] 集群ip获取出错， 5s后重试")
 			time.Sleep(time.Second * 5)
 			goto PING
 		} else {
-			s1 := strings.Replace(string(r[1]), "\n", "", -1)
-			s2 := strings.Replace(s1, " ", "", -1)
-			GlobalSystemConfig.Server.ClusterAddress = s2
+			GlobalSystemConfig.Server.ClusterAddress = clusterIp
+
+			// 实时检测0号机情况
+			ipChan := make(chan string)
+			go func() {
+				t := time.NewTimer(time.Second * 5)
+				for {
+					<-t.C
+
+					clusterIp, err := nodeUtils.GetClusterIp()
+					if err == nil && clusterIp != GlobalSystemConfig.Server.ClusterAddress {
+						ipChan <- clusterIp
+					}
+					t.Reset(time.Second * 5)
+				}
+			}()
+			return ipChan
 		}
-		fmt.Println("flag", GlobalSystemConfig.Server.HostName, GlobalSystemConfig.Server.Address, GlobalSystemConfig.Server.ClusterAddress)
 	}
+	return make(chan string)
 }

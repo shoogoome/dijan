@@ -10,12 +10,14 @@ import (
 )
 
 func main() {
-	utils.InitGlobalSystemConfig()
+
+
+	ipChan := utils.InitGlobalSystemConfig()
 	c := cache.New("rocksdb", 9999999)
 
 	service.InitHttpService()
 	recoveryUtils.MemoryRecovery()
-	n, e := cluster.New(utils.GlobalSystemConfig.Server.Address, utils.GlobalSystemConfig.Server.ClusterAddress)
+	n, e := cluster.New(utils.GlobalSystemConfig.Server.Address, utils.GlobalSystemConfig.Server.ClusterAddress, ipChan)
 	if e != nil {
 		panic(e)
 	}

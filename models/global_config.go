@@ -43,6 +43,9 @@ type server struct {
 	// http监听端口
 	HttpListenPort string `json:"http_listen_port" yaml:"http_listen_port"`
 
+	// 主机名
+	HostName string `json:"host_name"`
+
 	// 本机地址
 	Address string `json:"address" yaml:"address"`
 

@@ -34,11 +34,10 @@ func New(addr, cluster string, ipChan chan string) (Node, error) {
 	conf := memberlist.DefaultLANConfig()
 	conf.Name = addr
 	conf.LogOutput = os.Stderr
-	if addr != "" {
+	if addr != os.Getenv("HOSTNAME") {
 		conf.AdvertiseAddr = addr
 	} else {
-		conf.BindAddr = utils.GlobalSystemConfig.Server.HostName
-		conf.Name = utils.GlobalSystemConfig.Server.HostName
+		conf.BindAddr = utils.GlobalSystemConfig.Server.Address
 	}
 	l, e := memberlist.Create(conf)
 	Member = l

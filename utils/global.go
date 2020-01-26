@@ -28,9 +28,8 @@ func InitGlobalSystemConfig() chan string {
 	}
 
 	if os.Getenv("HEADLESS_SERVICE") == "" {
-		GlobalSystemConfig.Server.HostName = os.Getenv("HOSTNAME")
-		GlobalSystemConfig.Server.Address = os.Getenv("HOSTNAME")
-		GlobalSystemConfig.Server.ClusterAddress = os.Getenv("HOSTNAME")
+		GlobalSystemConfig.Server.HostName = "localhost"
+		GlobalSystemConfig.Server.ClusterAddress = "localhost"
 	} else {
 		GlobalSystemConfig.Server.HostName = os.Getenv("HOSTNAME")
 		var out bytes.Buffer

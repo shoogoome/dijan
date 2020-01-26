@@ -11,7 +11,7 @@
 
 1. 拉取docker镜像
 ```
-docker pull registry.cn-shenzhen.aliyuncs.com/shoogoome/dijan:v1.1
+docker pull registry.cn-shenzhen.aliyuncs.com/shoogoome/dijan:v1.0
 ```
 
 2. 替换默认系统配置(/etc/dijan/config.yaml)

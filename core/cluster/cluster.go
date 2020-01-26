@@ -65,7 +65,9 @@ func New(addr, cluster string, ipChan chan string) (Node, error) {
 			case ip := <-ipChan:
 				lock.Lock()
 				joinCluster([]string{ip})
+				utils.GlobalSystemConfig.Server.ClusterAddress = ip
 				lock.Unlock()
+				fmt.Println("[*] 集群重搭建成功")
 				t.Reset(time.Second * 1)
 			}
 		}

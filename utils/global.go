@@ -3,12 +3,13 @@ package utils
 import (
 	"bytes"
 	"dijan/models"
-	"dijan/utils/node"
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -37,10 +38,9 @@ func InitGlobalSystemConfig() chan string {
 		cmd.Stdout = &out
 		cmd.Stderr = os.Stdout
 		err := cmd.Run()
-		fmt.Println("?", out.String(), err)
 		GlobalSystemConfig.Server.Address = strings.Replace(out.String(), "\n", "", -1)
 PING:
-		clusterIp, err := nodeUtils.GetClusterIp()
+		clusterIp, err := getClusterIp()
 		if err != nil {
 			fmt.Println("[!] 集群ip获取出错， 5s后重试")
 			time.Sleep(time.Second * 5)
@@ -55,8 +55,9 @@ PING:
 				for {
 					<-t.C
 
-					clusterIp, err := nodeUtils.GetClusterIp()
+					clusterIp, err := getClusterIp()
 					if err == nil && clusterIp != GlobalSystemConfig.Server.ClusterAddress {
+						fmt.Println("[!] 集群ip发生变更")
 						ipChan <- clusterIp
 					}
 					t.Reset(time.Second * 5)
@@ -66,4 +67,23 @@ PING:
 		}
 	}
 	return make(chan string)
+}
+
+func getClusterIp() (string, error){
+
+	out := bytes.Buffer{}
+	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("ping -c 1 %s.%s | grep PING | awk '{print $3}'", os.Getenv("HOSTNAME")[:len(os.Getenv("HOSTNAME")) - 1] + "0", os.Getenv("HEADLESS_SERVICE")))
+	cmd.Stdout = &out
+	cmd.Stderr = os.Stdout
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	pingIp := regexp.MustCompile("\\((.*)\\):")
+	r := pingIp.FindSubmatch(out.Bytes())
+	if len(r) != 2 {
+		return "", errors.New("获取集群ip失败")
+	} else {
+		return strings.Replace(string(r[1]), "\n", "", -1), nil
+	}
 }

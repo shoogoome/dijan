@@ -10,10 +10,8 @@ import (
 )
 
 func main() {
-
-
 	ipChan := utils.InitGlobalSystemConfig()
-	c := cache.New("rocksdb", 9999999)
+	c := cache.New()
 
 	service.InitHttpService()
 	recoveryUtils.MemoryRecovery()

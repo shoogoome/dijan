@@ -30,7 +30,7 @@ func (s *rocksdbScanner) Scan() bool {
 func (s *rocksdbScanner) Key() string {
 	var length C.size_t
 	k := C.rocksdb_iter_key(s.i, &length)
-	return C.GoString(k)
+	return C.GoStringN(k, C.int(length))
 }
 
 func (s *rocksdbScanner) Value() []byte {

@@ -71,10 +71,9 @@ rocksdb:
         * method: post
         * content-type: application/json
         * json: {"key": 缓存键, "value": 缓存值, "ttl": 缓存有效期(-1不清除)
-    * /api/storage/delete    删除缓存
+    * /api/storage/delete/:key    删除缓存
         * method: delete
         * content-type: application/json
-        * josn: {"key": 缓存键}
     * /api/node              获取节点信息
         * method: get
     * /api/rebalance         节点再平衡

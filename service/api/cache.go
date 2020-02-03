@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kataras/iris"
+	"io/ioutil"
 )
 
 
@@ -42,24 +43,21 @@ func ModifyData(ctx iris.Context, auth auth.DijanAuthAuthorization) {
 }
 
 // 删除
-func DeleteData(ctx iris.Context, auth auth.DijanAuthAuthorization) {
+func DeleteData(ctx iris.Context, auth auth.DijanAuthAuthorization, key string) {
 	auth.CheckLogin()
-	reqBody := paramsUtils.RequestJsonInterface(ctx)
-	params := paramsUtils.NewParamsParser(reqBody)
 
 	// 其他节点存储
-	if addr, ok := cluster.NodeObject.ShouldProcess(params.Str("key", "存储键")); !ok {
-		body, _ := json.Marshal(reqBody)
+	if addr, ok := cluster.NodeObject.ShouldProcess(key); !ok {
 		response, err := utils.Requests(
 			"DELETE",
-			fmt.Sprintf("http://%s%s/api/storage/delete", addr, utils.GlobalSystemConfig.Server.HttpListenPort),
-			bytes.NewBuffer(body))
+			fmt.Sprintf("http://%s%s/api/storage/delete/" + key, addr, utils.GlobalSystemConfig.Server.HttpListenPort),
+			nil)
 		if err != nil || response.StatusCode != 200 {
 			panic(cacheException.RocksdbDeleteFail())
 		}
 		// 本机节点存储
 	} else {
-		if err := cache.Conn.Del(params.Str("key", "存储键")); err != nil {
+		if err := cache.Conn.Del(key); err != nil {
 			panic(cacheException.RocksdbDeleteFail())
 		}
 	}
@@ -72,7 +70,27 @@ func DeleteData(ctx iris.Context, auth auth.DijanAuthAuthorization) {
 func GetData(ctx iris.Context, auth auth.DijanAuthAuthorization, key string) {
 	auth.CheckLogin()
 
-	value, _ := cache.Conn.Get(key)
+	var value []byte
+	// 其他节点存储
+	if addr, ok := cluster.NodeObject.ShouldProcess(key); !ok {
+		response, err := utils.Requests(
+			"GET",
+			fmt.Sprintf("http://%s%s/api/storage/get/" + key, addr, utils.GlobalSystemConfig.Server.HttpListenPort),
+			nil)
+		if err != nil || response.StatusCode != 200 {
+			panic(cacheException.RocksdbGetFail())
+		}
+		defer response.Body.Close()
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			panic(cacheException.RocksdbGetFail())
+		}
+		ctx.JSON(body)
+		return
+	// 本机节点存储
+	} else {
+		value, _ = cache.Conn.Get(key)
+	}
 	ctx.JSON(iris.Map {
 		"value": string(value),
 	})

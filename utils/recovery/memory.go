@@ -38,7 +38,7 @@ func MemoryRecovery() {
 					if err := json.Unmarshal(s.Value(), &storageValue); err != nil {
 						continue
 					}
-					if storageValue.TTL != -1 && storageValue.TTL >= time.Now().Unix() {
+					if storageValue.TTL != -1 && time.Now().Unix() >= storageValue.TTL  {
 						cache.Conn.Del(s.Key())
 					}
 				case <-cpu:

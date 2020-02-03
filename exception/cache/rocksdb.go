@@ -17,3 +17,11 @@ func RocksdbDeleteFail() models.RestfulAPIResult {
 		Message: "删除失败",
 	}
 }
+
+func RocksdbGetFail() models.RestfulAPIResult {
+	return models.RestfulAPIResult{
+		Status:  false,
+		ErrCode: 5307,
+		Message: "获取失败",
+	}
+}

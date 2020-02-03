@@ -51,13 +51,13 @@ func (s *Server) readKeyAndValue(r *bufio.Reader) (string, []byte, int, error) {
 	_, e = io.ReadFull(r, v)
 	if e != nil {
 		if !ok {
-			return "", nil, 0, errors.New(addr + utils.GlobalSystemConfig.Server.TcpListenPort)
+			return "", nil, 0, errors.New(addr)
 		}
 		return "", nil, 0, e
 	}
 	if tlen == 0 {
 		if !ok {
-			return "", nil, 0, errors.New(addr + utils.GlobalSystemConfig.Server.TcpListenPort)
+			return "", nil, 0, errors.New(addr)
 		}
 		return key, v, -1, nil
 	}
@@ -65,19 +65,19 @@ func (s *Server) readKeyAndValue(r *bufio.Reader) (string, []byte, int, error) {
 	_, e = io.ReadFull(r, t)
 	if e != nil {
 		if !ok {
-			return "", nil, 0, errors.New(addr + utils.GlobalSystemConfig.Server.TcpListenPort)
+			return "", nil, 0, errors.New(addr)
 		}
 		return "", nil, 0, e
 	}
 	ttl, e := strconv.Atoi(string(t))
 	if e != nil {
 		if !ok {
-			return "", nil, 0, errors.New(addr + utils.GlobalSystemConfig.Server.TcpListenPort)
+			return "", nil, 0, errors.New(addr)
 		}
 		return "", nil, 0, e
 	}
 	if !ok {
-		return "", nil, 0, errors.New(addr + utils.GlobalSystemConfig.Server.TcpListenPort)
+		return "", nil, 0, errors.New(addr)
 	}
 	return key, v, ttl, nil
 }

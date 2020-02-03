@@ -61,7 +61,7 @@ func (s *Server) member(ch chan chan*result, r *bufio.Reader) {
 	go func() {
 		nodes := make([]string, cluster.Member.NumMembers())
 		for index, node := range cluster.Member.Members() {
-			nodes[index] = node.Name + utils.GlobalSystemConfig.Server.TcpListenPort
+			nodes[index] = node.Name
 		}
 		c <- &result{[]byte(strings.Join(nodes, " ")), nil}
 	}()

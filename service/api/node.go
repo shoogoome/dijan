@@ -25,6 +25,7 @@ func NodeStorageInfo(ctx iris.Context, auth auth.DijanAuthAuthorization) {
 		info := map[string]interface{}{
 			"key": key,
 			"index": strconv.Itoa(index),
+			"size": len(value),
 		}
 		err := json.Unmarshal(value, &storageValue)
 		if err == nil {

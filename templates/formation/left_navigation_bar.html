@@ -1,9 +1,10 @@
 <style type="text/css">
     .content-left {
-        width: 20%;
+        width: 16%;
         height: 90vh;
         overflow-y: auto;
         margin-top: 30px;
+
         border-right: 1px solid #e3e3e3;
     }
     .list-active {
@@ -19,7 +20,7 @@
         list-style:none;
         padding: 0;
         height: 65px;
-        font-size: 20px;
+        font-size: 15px;
         margin-left: 40px;
     }
     .list:hover a{
@@ -33,7 +34,7 @@
         </li>
         {% for node in nodes %}
         <li class="list">
-            <a class="navbar-brand" href="/node/{{ node }}">{{ node }}</a>
+            <a class="navbar-brand" style="font-size: 15px;" href="/node/{{ node }}">{{ node }}</a>
         </li>
         {% endfor %}
     </ul>

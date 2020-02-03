@@ -10,12 +10,12 @@
         padding: 30px;
         display: flex;
         flex-direction: column;
-        width: 80%;
+        width: 84%;
         height: 90vh;
     }
 
     .node-header {
-        height: 150px;
+        height: 120px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -60,21 +60,21 @@
         position: relative;
         left: 40px;
         top: 60px;
-        font-size: 20px;
+        font-size: 15px;
         text-indent: 5px;
         letter-spacing: 8px;
     }
 
     .put {
-        height: 800px;
-        width: 600px;
+        height: 700px;
+        width: 500px;
         border: 1px solid #d4d4d4;
         background-color: white;
         position: absolute;
         left: 50%;
-        margin-left: -300px;
+        margin-left: -250px;
         top: 50%;
-        margin-top: -400px;
+        margin-top: -350px;
         border-radius: 15px;
         display: flex;
         flex-direction: column;
@@ -83,11 +83,11 @@
 
     .put button {
         position: relative;
-        left: 40px;
-        top: 20px;
-        font-size: 20px;
-        text-indent: 20px;
-        letter-spacing: 20px;
+        left: 10px;
+        top: 10px;
+        font-size: 10px;
+        text-indent: 15px;
+        letter-spacing: 15px;
     }
 
 </style>
@@ -122,8 +122,9 @@
 <div class="node-right">
     <div class="node-header">
         <h3>节点缓存数据</h3>
-        <div style="font-size: 25px; margin-top: 50px;">
+        <div style="font-size: 20px; margin-top: 30px;">
             <span style="color: #364657;">存储记录数: {{ count }}</span>
+            <span style="color: #364657; margin-left: 5%">存储占用内存: {{ size }} MB</span>
             <a href="#" style="margin-left: 5%" onclick="show_put('', '', '')">添加记录</a>
             <a href="#" style="margin-left: 5%" onclick="empty('{{ hostname }}')">清空数据库</a>
         </div>
@@ -132,9 +133,10 @@
         <table class="table">
             <thead>
             <tr>
-                <th scope="col" style="width: 50px">#</th>
+                <th scope="col" style="width: 40px">#</th>
                 <th scope="col">存储键</th>
                 <th scope="col">存储值</th>
+                <th scope="col">大小 KB</th>
                 <th scope="col" style="width: 250px">过期时间</th>
                 <th scope="col" style="width: 80px">修改</th>
                 <th scope="col" style="width: 80px">删除</th>
@@ -143,13 +145,14 @@
             <tbody>
             {% for i in records %}
             <tr>
-                <th scope="row">{{ i. index }}</th>
+                <th scope="row">{{ i.index }}</th>
                 <td>{{ i.key }}</td>
-                <td>{{ i.value }}</td>
+                <td><a href="#" id="va_{{ i.index }}" onclick="load_value('{{ i.key }}', 'va_{{ i.index }}')">点击载入值</a>
+                <td>{{ i.size }}</td>
                 <td id="td_{{ i.index }}">
                     <script>load_ttl_time({{ i.ttl }}, 'td_{{ i.index }}')</script>
                 </td>
-                <td><a href="#" onclick="show_put('{{ i.key }}', '{{ i.value }}', '{{ i.ttl }}')">修改</a></td>
+                <td><a href="#" onclick="show_put('{{ i.key }}', '{{ i.ttl }}')">修改</a></td>
                 <td><a href="#" onclick="show_delete('{{ i.key }}')">删除</a></td>
             </tr>
             {% endfor %}
@@ -165,11 +168,11 @@
 <div class="put">
     <div>
         <span style="margin: 0 5px 0 0;">存储键</span>
-        <input style="margin: 20px 0 5px 0;width: 300px" id="put-key"/>
+        <input style="margin: 20px 0 5px 0;width: 200px" id="put-key"/>
         <span style="margin: 0 5px 0 35px;">TTL</span>
         <input style="width: 100px" id="put-ttl"/>
     </div>
-    <textarea id="put-in" style="height: 600px; margin-top: 40px;" rows="2" cols="20" class="input"></textarea>
+    <textarea id="put-in" style="height: 600px; margin-top: 20px;" rows="2" cols="20" class="input"></textarea>
     <div>
         <button value="" id="put-bu" type="button" class="btn btn-primary" onclick="modify_storage_value()">修改</button>
         <button style="left: 250px" type="button" class="btn btn-secondary" onclick="close_div('fast')">取消</button>
@@ -184,18 +187,46 @@
         $('.put').hide(sudu);
     }
 
-    function show_put(key, value, ttl) {
+
+    function show_put(key, ttl) {
         $('.put').show('fast');
         $('#put-key').val(key);
-        $('#put-in').text(value);
 
         if (key == '') {
             $('#put-bu').text('新增')
             $('#put-ttl').val('-1')
         } else {
             $('#put-bu').text('修改')
+            $.ajax({
+                type: "GET",
+                url: "/api/storage/get/" + key,
+                contentType: "application/json; charset=utf-8",
+                xhrFields: {
+                    withCredentials: true
+                },
+                datatype: "json",
+                success: function (data) {
+                    $('#put-in').text(data.value)
+                },
+            })
             $('#put-ttl').val(parseInt(ttl))
         }
+    }
+
+    function load_value(key, id) {
+        $.ajax({
+            type: "GET",
+            url: "/api/storage/get/" + key,
+            contentType: "application/json; charset=utf-8",
+            xhrFields: {
+                withCredentials: true
+            },
+            datatype: "json",
+            success: function (data) {
+                $('#' + id).text(data.value)
+                $('#' + id).css('color', 'black')
+            },
+        })
     }
 
     function show_delete(key) {

@@ -85,7 +85,9 @@ func GetData(ctx iris.Context, auth auth.DijanAuthAuthorization, key string) {
 		if err != nil {
 			panic(cacheException.RocksdbGetFail())
 		}
-		ctx.JSON(body)
+		var info iris.Map
+		json.Unmarshal(body, &info)
+		ctx.JSON(info)
 		return
 	// 本机节点存储
 	} else {

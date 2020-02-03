@@ -136,8 +136,8 @@
                 <th scope="col" style="width: 40px">#</th>
                 <th scope="col">存储键</th>
                 <th scope="col">存储值</th>
-                <th scope="col">大小 KB</th>
                 <th scope="col" style="width: 250px">过期时间</th>
+                <th scope="col" style="width: 150px">大小 KB</th>
                 <th scope="col" style="width: 80px">修改</th>
                 <th scope="col" style="width: 80px">删除</th>
             </tr>
@@ -148,10 +148,10 @@
                 <th scope="row">{{ i.index }}</th>
                 <td>{{ i.key }}</td>
                 <td><a href="#" id="va_{{ i.index }}" onclick="load_value('{{ i.key }}', 'va_{{ i.index }}')">点击载入值</a>
-                <td>{{ i.size }}</td>
                 <td id="td_{{ i.index }}">
                     <script>load_ttl_time({{ i.ttl }}, 'td_{{ i.index }}')</script>
                 </td>
+                <td>{{ i.size }}</td>
                 <td><a href="#" onclick="show_put('{{ i.key }}', '{{ i.ttl }}')">修改</a></td>
                 <td><a href="#" onclick="show_delete('{{ i.key }}')">删除</a></td>
             </tr>
@@ -277,15 +277,12 @@
         $('.delete').hide("fast")
         $.ajax({
             type: "DELETE",
-            url: "/api/storage/delete",
+            url: "/api/storage/delete/" + $('#delete-bu').val(),
             contentType: "application/json; charset=utf-8",
             datatype: "json",
             xhrFields: {
                 withCredentials: true
             },
-            data: JSON.stringify({
-                'key': $('#delete-bu').val()
-            }),
             success: function (data) {
                 var alert_string = "";
                 if (data.status === true) {

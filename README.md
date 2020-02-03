@@ -52,9 +52,10 @@ rocksdb:
     # 异步处理最大同时处理数（功能可替代客户端的连接池）
     asynchronous_number: 5000
     # 批处理功能:
-    # 若batch_handle_time秒内累计set请求达到batch_size则进行set操作并重置计数器
+    # 若batch_handle_time秒(整数)内累计set请求达到batch_size则进行set操作并重置计数器
     # 若到batch_handle_time秒则将执行累计的set操作
     # 应搭配好这两个配置项。在默认配置下，即便系统宕机也只会丢失1s内且不多于100条数据（作为缓存系统，允许数据丢失）
+    # 若不希望延迟提交则batch_handle_time设置为0
     batch_handle_time: 1
     batch_size: 100
 ```

@@ -49,7 +49,7 @@ cluster:
 rocksdb:
     # 数据持久化根节点
     root_dir: /mnt/rocksdb
-    # 异步处理最大同时处理数（功能可替代客户端的连接池）
+    # 异步处理最大同时处理数
     asynchronous_number: 5000
     # 批处理功能:
     # 若batch_handle_time秒(整数)内累计set请求达到batch_size则进行set操作并重置计数器

@@ -17,6 +17,27 @@
         border-bottom: 1px solid #e3e3e3;
         padding: 30px;
     }
+    .delete_all {
+        height: 250px;
+        width: 400px;
+        border: 1px solid #d4d4d4;
+        background-color: white;
+        position: absolute;
+        left: 50%;
+        margin-left: -200px;
+        top: 50%;
+        margin-top: -200px;
+        border-radius: 15px;
+    }
+
+    .delete_all button {
+        position: relative;
+        left: 40px;
+        top: 60px;
+        font-size: 15px;
+        text-indent: 5px;
+        letter-spacing: 8px;
+    }
     .system-data {
         font-size: 20px;
         display: flex;
@@ -53,14 +74,28 @@
                 <a href="#" onclick="rebalance()">节点再平衡</a>
             </li>
             <li class="list">
-                <a href="#" onclick="empty()">清空数据库</a>
+                <a href="#" onclick="show_delete()">清空数据库</a>
             </li>
         </ul>
     </div>
 </div>
+<div class="delete_all">
+    <h3 style="text-align: center;margin-top: 50px;">确认删除?</h3>
+    <button value="" id="delete-bu" type="button" class="btn btn-danger" onclick="empty()">删除</button>
+    <button style="left: 180px" type="button" class="btn btn-secondary" onclick="close_div('fast')">取消</button>
+</div>
 {% endblock %}
 {% block main_content_js %}
 <script>
+
+    function close_div(sudu) {
+        $('.delete_all').hide(sudu);
+    }
+
+    function show_delete() {
+        $('.delete_all').show('fast');
+    }
+
     function rebalance() {
         $.ajax({
             type: "GET",
@@ -70,18 +105,12 @@
                 withCredentials: true
             },
             datatype: "json",
-            success: function(data) {
-                var alert_string = "";
-                if (data.status === true) {
-                    alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>节点再平衡已完成！ </div>";
-                } else {
-                    alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>操作失败！ </div>"
-                }
-
+            success: function() {
+                let alert_string = "<div class=\"alert alert-success\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>后台已启动节点再平衡工作！ </div>";
                 $('.content-right').prepend(alert_string);
                 window.setTimeout(function(){
                     location.reload()
-                },1000);
+                },2000);
             },
             error: function() {
                 var alert_string = "<div class=\"alert alert-danger\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\"> &times; </a> <strong>操作失败！ </div>"
@@ -124,7 +153,7 @@
             }
         })
     }
-
+    close_div()
 
 </script>
 {% endblock %}

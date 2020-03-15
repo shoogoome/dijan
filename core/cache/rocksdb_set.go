@@ -9,6 +9,7 @@ import (
 	"dijan/models"
 	"dijan/utils"
 	"encoding/json"
+	"errors"
 	"time"
 	"unsafe"
 )
@@ -57,7 +58,6 @@ func write_func(db *C.rocksdb_t, c chan *pair, o *C.rocksdb_writeoptions_t) {
 
 func (c *rocksdbCache) Set(key string, value []byte, ttl ...int) error {
 
-	// 为
 	storageValue := models.StorageValue {
 		Value: value,
 		TTL: -1,
@@ -68,10 +68,31 @@ func (c *rocksdbCache) Set(key string, value []byte, ttl ...int) error {
 			TTL: time.Now().Unix() + int64(ttl[0]),
 		}
 	}
-	if nValue, err := json.Marshal(storageValue); err != nil {
-		c.ch <- &pair{key, value}
+	nValue, nerr := json.Marshal(storageValue)
+	// 批量写入
+	if utils.GlobalSystemConfig.Rocksdb.BatchHandleTime > 0 {
+		if nerr != nil {
+			c.ch <- &pair{key, value}
+		} else {
+			c.ch <- &pair{key, nValue}
+		}
+	// 直接写入
 	} else {
-		c.ch <- &pair{key, nValue}
+		k := C.CString(key)
+		defer C.free(unsafe.Pointer(k))
+		if nerr != nil {
+			v := C.CBytes(value)
+			defer C.free(v)
+			C.rocksdb_put(c.db, c.wo, k, C.size_t(len(key)), (*C.char)(v), C.size_t(len(value)), &c.e)
+		} else {
+			v := C.CBytes(nValue)
+			defer C.free(v)
+			C.rocksdb_put(c.db, c.wo, k, C.size_t(len(key)), (*C.char)(v), C.size_t(len(nValue)), &c.e)
+		}
+		if c.e != nil {
+			return errors.New(C.GoString(c.e))
+		}
+		return nil
 	}
 	return nil
 }

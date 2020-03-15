@@ -43,7 +43,7 @@
         text-overflow: clip;
     }
 
-    .delete {
+    .delete, .delete_em {
         height: 250px;
         width: 400px;
         border: 1px solid #d4d4d4;
@@ -56,7 +56,7 @@
         border-radius: 15px;
     }
 
-    .delete button {
+    .delete button, .delete_em button {
         position: relative;
         left: 40px;
         top: 60px;
@@ -126,7 +126,7 @@
             <span style="color: #364657;">存储记录数: {{ count }}</span>
             <span style="color: #364657; margin-left: 5%">存储占用内存: {{ size }} MB</span>
             <a href="#" style="margin-left: 5%" onclick="show_put('', '', '')">添加记录</a>
-            <a href="#" style="margin-left: 5%" onclick="empty('{{ hostname }}')">清空数据库</a>
+            <a href="#" style="margin-left: 5%" onclick="show_delete_em()">清空数据库</a>
         </div>
     </div>
     <div class="node-kv-list">
@@ -165,12 +165,18 @@
     <button value="" id="delete-bu" type="button" class="btn btn-danger" onclick="delete_storage_value()">删除</button>
     <button style="left: 180px" type="button" class="btn btn-secondary" onclick="close_div('fast')">取消</button>
 </div>
+<div class="delete_em">
+    <h3 style="text-align: center;margin-top: 50px;">确认清空?</h3>
+    <button value="" id="delete-bu" type="button" class="btn btn-danger" onclick="empty('{{ hostname }}')">清空</button>
+    <button style="left: 180px" type="button" class="btn btn-secondary" onclick="close_div('fast')">取消</button>
+</div>
 <div class="put">
     <div>
         <span style="margin: 0 5px 0 0;">存储键</span>
-        <input style="margin: 20px 0 5px 0;width: 200px" id="put-key"/>
-        <span style="margin: 0 5px 0 35px;">TTL</span>
+        <input style="margin: 20px 0 5px 0;width: 150px" id="put-key"/>
+        <span style="margin: 0 5px 0 10px;">TTL</span>
         <input style="width: 100px" id="put-ttl"/>
+        <button style="text-align:center; padding: 0;vertical-align:middle;text-indent: 0;letter-spacing:2px;width: 80px; height: 27px; margin-top: -23px;font-size: 15px" type="button" class="btn btn-secondary" onclick="json_show()">json</button>
     </div>
     <textarea id="put-in" style="height: 600px; margin-top: 20px;" rows="2" cols="20" class="input"></textarea>
     <div>
@@ -185,6 +191,7 @@
     function close_div(sudu) {
         $('.delete').hide(sudu);
         $('.put').hide(sudu);
+        $('.delete_em').hide(sudu);
     }
 
 
@@ -213,6 +220,12 @@
         }
     }
 
+    function json_show() {
+        let result = JSON.stringify(JSON.parse($('#put-in').val()), null, 4);//将字符串转换成json对象
+        $('#put-in').text(result)
+    }
+
+
     function load_value(key, id) {
         $.ajax({
             type: "GET",
@@ -232,6 +245,10 @@
     function show_delete(key) {
         $('.delete').show('fast');
         $('#delete-bu').val(key);
+    }
+
+    function show_delete_em() {
+        $('.delete_em').show('fast');
     }
 
     function modify_storage_value() {
